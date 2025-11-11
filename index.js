@@ -32,6 +32,7 @@ async function run() {
 
     const db = client.db("utility_bill");
     const billsCollection = db.collection("bills");
+    const paymentsCollection = db.collection("payments");
 
     // resent bill post
     app.post("/recent-bills", async (req, res) => {
@@ -75,17 +76,45 @@ async function run() {
       const result = await billsCollection.findOne({ _id: new ObjectId(id) });
       res.send({ success: true, result });
     });
-    // try {
-    //   const query = { _id: new ObjectId(id) };
-    //   const bill = await billsCollection.findOne(query);
-    //   if (!bill) {
-    //     return res.status(404).send({ message: "Bill not found" });
-    //   }
-    //   res.send(bill);
-    // } catch (error) {
-    //   console.error("Error fetching single bill:", error);
-    //   res.status(500).send({ message: "Internal Server Error" });
-    // }
+
+    // bill  put
+    app.put("/bills/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+      console.log(id);
+      console.log(data);
+      const objectId = new ObjectId(id);
+      const filter = { _id: objectId };
+      const update = {
+        $set: data,
+      };
+      const result = await billsCollection.updateOne(filter, update);
+      res.send(result);
+    });
+
+    // Save new payment
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentsCollection.insertOne(payment);
+      res.send({ success: true, result });
+    });
+
+    // Get user's payments (My Bills page)
+    app.get("/payments", async (req, res) => {
+      const email = req.query.email;
+      if (!email) return res.status(400).send({ message: "Email required" });
+
+      const result = await paymentsCollection.find({ email }).toArray();
+      res.send({ success: true, result });
+    });
+
+    app.delete("/payments/:id", async (req, res) => {
+      const { id } = req.params;
+      const objectId = new ObjectId(id);
+      const filter = { _id: objectId };
+      const result = await paymentsCollection.deleteOne(filter);
+      res.send({ success: true, result });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
