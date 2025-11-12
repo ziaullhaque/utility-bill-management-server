@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
 async function run() {
   try {
     // Connect the client to the server
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("utility_bill");
     const billsCollection = db.collection("bills");
@@ -100,14 +100,14 @@ async function run() {
       res.send(result);
     });
 
-    // Save new payment
+    // save new payment
     app.post("/payments", async (req, res) => {
       const payment = req.body;
       const result = await paymentsCollection.insertOne(payment);
       res.send({ success: true, result });
     });
 
-    // Get user's payments (My Bills page)
+    // get user's payments (My Bills page)
     app.get("/payments", async (req, res) => {
       const email = req.query.email;
       if (!email) return res.status(400).send({ message: "Email required" });
@@ -140,7 +140,7 @@ async function run() {
       res.send({ success: true, result });
     });
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
