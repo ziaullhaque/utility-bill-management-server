@@ -85,7 +85,7 @@ async function run() {
       res.send({ success: true, result });
     });
 
-    // bill  put
+    // bill  Put
     app.put("/bills/:id", async (req, res) => {
       const { id } = req.params;
       const data = req.body;
