@@ -49,7 +49,7 @@ async function run() {
         .sort({
           date: -1,
         })
-        .limit(6);
+        .limit(8);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -139,6 +139,43 @@ async function run() {
       const result = await paymentsCollection.deleteOne(filter);
       res.send({ success: true, result });
     });
+
+    app.get("/payments/summary", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
+        return res.status(400).send({ message: "Email required" });
+      }
+
+      const payments = await paymentsCollection.find({ email }).toArray();
+
+      // total amount
+      const totalAmount = payments.reduce(
+        (sum, bill) => sum + Number(bill.amount),
+        0
+      );
+
+      // category wise summary
+      const categoryMap = {};
+      payments.forEach((bill) => {
+        const category = bill.category || "Others";
+        categoryMap[category] =
+          (categoryMap[category] || 0) + Number(bill.amount);
+      });
+
+      const categoryData = Object.keys(categoryMap).map((key) => ({
+        category: key,
+        amount: categoryMap[key],
+      }));
+
+      res.send({
+        success: true,
+        totalBills: payments.length,
+        totalAmount,
+        categoryData,
+        payments,
+      });
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
